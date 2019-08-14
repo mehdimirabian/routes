@@ -1,0 +1,6 @@
+Environment Variables:
+FILE_NAME: points to the path of the config file
+
+How to Run:
+Navigate to src directory
+run: ./run-routing
