@@ -23,39 +23,24 @@ type Domain struct {
 }
 
 var (
-	nodeTable   = map[string]*Domain{}
+	rootTable   = map[string]*Domain{}
 	existingSub = map[string][]string{}
-	root        []*Domain
+	roots       []*Domain
 )
 
 var fileName string
 
-func add(name, parentId string) {
-	fmt.Printf("add:name=%v parentId=%v\n", name, parentId)
-	preExisting := false
+func addRoot(name string) {
+	fmt.Printf("adding root:name=%v\n", name)
 	node := &Domain{DomainName: name, SubDomains: []*Domain{}}
-
-	if parentId == "" && nodeTable[name] == nil {
-		root = append(root, node)
-	} else {
-		parent, ok := nodeTable[parentId]
-		if !ok {
-			fmt.Printf("add: parentId=%v: not found\n", parentId)
-			return
-		}
-		for _, dom := range existingSub[parent.DomainName] {
-			if node.DomainName == dom {
-				preExisting = true
-				break
-			}
-		}
-		if !preExisting {
-			parent.SubDomains = append(parent.SubDomains, node)
-			existingSub[parent.DomainName] = append(existingSub[parent.DomainName], node.DomainName)
-		}
+	if rootTable[name] == nil {
+		roots = append(roots, node)
+		rootTable[name] = node
 	}
+}
 
-	nodeTable[name] = node
+func addLeafDfs(name, root *Domain) {
+
 }
 
 func showNode(node *Domain, prefix string) {
@@ -70,12 +55,12 @@ func showNode(node *Domain, prefix string) {
 }
 
 func show() {
-	if root == nil {
+	if roots == nil {
 		fmt.Printf("show: root node not found\n")
 		return
 	}
 	fmt.Printf("RESULT:\n")
-	for _, node := range root {
+	for _, node := range roots {
 		showNode(node, "")
 	}
 }
@@ -92,7 +77,7 @@ func main() {
 	fmt.Printf("main: reading input from stdin -- done\n")
 	show()
 	fmt.Printf("main: end\n")
-	for _, dom := range root {
+	for _, dom := range roots {
 		fmt.Println(dom)
 		for _, next := range dom.SubDomains {
 			fmt.Println(next)
@@ -119,6 +104,10 @@ func loadConfig() {
 	for scanner.Scan() {
 		txtlines = append(txtlines, scanner.Text())
 		line := strings.Split(scanner.Text(), ".")
+		root := rootTable[line[0]]
+		if root == nil {
+			addRoot(line[0])
+		}
 		for i, dom := range line {
 			if i == 0 {
 				add(dom, "")
